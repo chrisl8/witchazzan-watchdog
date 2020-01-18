@@ -23,7 +23,7 @@ function connectAndWait() {
     // ws.send('something');
     const obj = {};
     obj.message_type = 'login';
-    obj.username = 'H4ck3r0ne';
+    obj.username = 'FloofyWoofer';
     obj.password = 'password';
     const jsonString = JSON.stringify(obj);
     ws.send(jsonString);
