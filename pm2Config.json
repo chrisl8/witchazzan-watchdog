@@ -1,0 +1,12 @@
+{
+  "apps": [
+    {
+      "name": "Watchdog",
+      "script": "index.js",
+      "max_memory_restart": "256M",
+      "merge_logs": true,
+      "exec_interpreter": "node",
+      "log_date_format" : "YYYY-MM-DD HH:mm Z"
+    }
+  ]
+}
