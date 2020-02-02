@@ -37,7 +37,7 @@ function connectAndWait() {
       scene: 'LoruleH8',
       direction: 'left',
       sprite: 'pantingDog',
-      moving: false,
+      moving: true,
     };
     ws.send(JSON.stringify(obj));
   });
