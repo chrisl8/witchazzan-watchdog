@@ -75,8 +75,11 @@ async function watchdog() {
       errorCount = 0;
       closedCount = 0;
       noDataReceivedCount = 0;
+      // TODO: Count server restarts and wipe save file if too many happen.
       console.log('Restarting server...');
-      exec('sudo /bin/systemctl restart witchazzan-server');
+      exec('/home/witchazzan/witchazzan-watchdog/sendLogAndRestart.sh');
+      // eslint-disable-next-line no-await-in-loop
+      await wait(120);
     }
 
     // eslint-disable-next-line no-await-in-loop
