@@ -21,15 +21,28 @@ function connectAndWait() {
     errorCount = 0;
     closedCount = 0;
     // ws.send('something');
-    const obj = {};
-    obj.message_type = 'login';
-    obj.username = 'FloofyWoofer';
-    obj.password = 'password';
-    const jsonString = JSON.stringify(obj);
-    ws.send(jsonString);
+    // Send Login
+    let obj = {
+      message_type: 'login',
+      username: 'FloofyWoofer',
+      password: 'password',
+    };
+    ws.send(JSON.stringify(obj));
+
+    // Send initial position
+    obj = {
+      message_type: 'location-update',
+      x: 219.26199999999997,
+      y: 138.71637279596976,
+      scene: 'LoruleH8',
+      direction: 'left',
+      sprite: 'pantingDog',
+      moving: false,
+    };
+    ws.send(JSON.stringify(obj));
   });
 
-  ws.on('message', function incoming(data) {
+  ws.on('message', function incoming() {
     dataReceived = true;
     // console.log(data);
   });
