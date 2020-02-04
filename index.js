@@ -9,13 +9,17 @@ let dataReceived;
 let noDataReceivedCount = 0;
 let firstRun = true;
 const restartThreshold = 4;
+const loopDuration = 10; // seconds
+const sendFireballWhenCountAbove = 1;
+let sendFireballCount = 0;
 
 // const serverAddress = 'wss://witchazzan-server.ekpyroticfrood.net/';
 const serverAddress = 'ws://127.0.0.1:8080';
+let ws;
 
 function connectAndWait() {
   connectionRunning = true;
-  const ws = new WebSocket(serverAddress);
+  ws = new WebSocket(serverAddress);
 
   ws.on('open', function open() {
     errorCount = 0;
@@ -78,6 +82,17 @@ async function watchdog() {
     } else if (dataReceived) {
       dataReceived = false;
       noDataReceivedCount = 0;
+      sendFireballCount++;
+      if (ws && sendFireballCount > sendFireballWhenCountAbove) {
+        // Send fireball periodically to fend off slimes.
+        sendFireballCount = 0;
+        const obj = {
+          message_type: 'fireball',
+          direction: 'west',
+          sprite: 'fireball',
+        };
+        ws.send(JSON.stringify(obj));
+      }
     }
 
     if (
@@ -96,7 +111,7 @@ async function watchdog() {
     }
 
     // eslint-disable-next-line no-await-in-loop
-    await wait(10);
+    await wait(loopDuration);
   }
 }
 
