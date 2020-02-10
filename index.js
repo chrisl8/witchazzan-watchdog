@@ -21,7 +21,7 @@ function connectAndWait() {
   connectionRunning = true;
   ws = new WebSocket(serverAddress);
 
-  ws.on('open', function open() {
+  ws.on('open', async function open() {
     errorCount = 0;
     closedCount = 0;
     // ws.send('something');
@@ -32,6 +32,8 @@ function connectAndWait() {
       password: 'password',
     };
     ws.send(JSON.stringify(obj));
+
+    await wait(1); // Delay a moment
 
     // Send initial position
     obj = {
