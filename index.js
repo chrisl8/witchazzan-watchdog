@@ -10,12 +10,86 @@ let noDataReceivedCount = 0;
 let firstRun = true;
 const restartThreshold = 4;
 const loopDuration = 10; // seconds
-const sendFireballWhenCountAbove = 1;
-let sendFireballCount = 0;
 
 // const serverAddress = 'wss://witchazzan-server.ekpyroticfrood.net/';
 const serverAddress = 'ws://127.0.0.1:8080';
 let ws;
+let playerId;
+let iAmAlone = true;
+let iAmDead = true;
+let locationSent = false;
+const fireballDirections = ['north', 'south', 'east', 'west'];
+let lastFireballDirection = 0;
+
+function handleData(event) {
+  dataReceived = true;
+  const inputData = JSON.parse(event);
+  if (inputData && inputData.messageType) {
+    if (inputData.messageType === 'identity') {
+      iAmDead = false;
+      playerId = inputData.id;
+    } else if (
+      inputData.messageType === 'game-piece-list' &&
+      inputData.pieces &&
+      inputData.pieces.length > 0
+    ) {
+      let foundMyIdInGamePieceList = false;
+      let foundOtherPlayers = false;
+      inputData.pieces.forEach((piece) => {
+        if (piece.type === 'player') {
+          if (piece.id === playerId) {
+            foundMyIdInGamePieceList = true;
+          } else {
+            foundOtherPlayers = true;
+          }
+        } else if (piece.type === 'slime') {
+          // TODO: Fire AT the slime.
+          const fireballObject = {
+            message_type: 'fireball',
+            direction: fireballDirections[lastFireballDirection],
+            sprite: 'fireball',
+          };
+          ws.send(JSON.stringify(fireballObject));
+          if (lastFireballDirection < fireballDirections.length - 1) {
+            lastFireballDirection++;
+          } else {
+            lastFireballDirection = 0;
+          }
+        }
+      });
+      iAmDead = !foundMyIdInGamePieceList;
+      iAmAlone = !foundOtherPlayers;
+    }
+    if (!locationSent) {
+      locationSent = true;
+      console.log('Sending location');
+      // Send initial position
+      ws.send(
+        JSON.stringify({
+          message_type: 'location-update',
+          x: 235,
+          y: 154,
+          scene: 'LoruleH8',
+          direction: 'left',
+          sprite: 'pantingDog',
+          moving: true,
+        }),
+      );
+    }
+    if (iAmDead) {
+      console.log('Sending Login');
+      // Send Login
+      ws.send(
+        JSON.stringify({
+          message_type: 'login',
+          username: 'FloofyWoofer',
+          password: 'password',
+        }),
+      );
+      locationSent = false;
+    }
+  }
+}
 
 function connectAndWait() {
   connectionRunning = true;
@@ -25,33 +99,18 @@ function connectAndWait() {
     errorCount = 0;
     closedCount = 0;
     // ws.send('something');
+    console.log('Sending Login');
     // Send Login
-    let obj = {
-      message_type: 'login',
-      username: 'FloofyWoofer',
-      password: 'password',
-    };
-    ws.send(JSON.stringify(obj));
-
-    await wait(1); // Delay a moment
-
-    // Send initial position
-    obj = {
-      message_type: 'location-update',
-      x: 219.26199999999997,
-      y: 138.71637279596976,
-      scene: 'LoruleH8',
-      direction: 'left',
-      sprite: 'pantingDog',
-      moving: true,
-    };
-    ws.send(JSON.stringify(obj));
+    ws.send(
+      JSON.stringify({
+        message_type: 'login',
+        username: 'FloofyWoofer',
+        password: 'password',
+      }),
+    );
   });
 
-  ws.on('message', function incoming() {
-    dataReceived = true;
-    // console.log(data);
-  });
+  ws.on('message', handleData);
 
   ws.on('error', (error) => {
     errorCount++;
@@ -63,6 +122,8 @@ function connectAndWait() {
     closedCount++;
     console.log('Connection closed.');
     connectionRunning = false;
+    iAmDead = true;
+    locationSent = false;
   });
 }
 
@@ -84,17 +145,6 @@ async function watchdog() {
     } else if (dataReceived) {
       dataReceived = false;
       noDataReceivedCount = 0;
-      sendFireballCount++;
-      if (ws && sendFireballCount > sendFireballWhenCountAbove) {
-        // Send fireball periodically to fend off slimes.
-        sendFireballCount = 0;
-        const obj = {
-          message_type: 'fireball',
-          direction: 'west',
-          sprite: 'fireball',
-        };
-        ws.send(JSON.stringify(obj));
-      }
     }
 
     if (
