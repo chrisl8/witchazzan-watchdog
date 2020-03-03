@@ -20,6 +20,8 @@ let iAmDead = true;
 let locationSent = false;
 const fireballDirections = ['north', 'south', 'east', 'west'];
 let lastFireballDirection = 0;
+const fireballSleepTime = 1;
+let fireballSleepCounter = 0;
 
 function handleData(event) {
   dataReceived = true;
@@ -43,17 +45,24 @@ function handleData(event) {
             foundOtherPlayers = true;
           }
         } else if (piece.type === 'slime') {
-          // TODO: Fire AT the slime.
-          const fireballObject = {
-            message_type: 'fireball',
-            direction: fireballDirections[lastFireballDirection],
-            sprite: 'fireball',
-          };
-          ws.send(JSON.stringify(fireballObject));
-          if (lastFireballDirection < fireballDirections.length - 1) {
-            lastFireballDirection++;
+          if (fireballSleepCounter === 0) {
+            fireballSleepCounter++;
+            // TODO: Fire AT the slime.
+            const fireballObject = {
+              message_type: 'fireball',
+              direction: fireballDirections[lastFireballDirection],
+              sprite: 'fireball',
+            };
+            ws.send(JSON.stringify(fireballObject));
+            if (lastFireballDirection < fireballDirections.length - 1) {
+              lastFireballDirection++;
+            } else {
+              lastFireballDirection = 0;
+            }
+          } else if (fireballSleepCounter > fireballSleepTime) {
+            fireballSleepCounter = 0;
           } else {
-            lastFireballDirection = 0;
+            fireballSleepCounter++;
           }
         }
       });
