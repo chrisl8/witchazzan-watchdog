@@ -76,8 +76,8 @@ function handleData(event) {
       ws.send(
         JSON.stringify({
           message_type: 'location-update',
-          x: 235,
-          y: 154,
+          x: 128 + 16,
+          y: 96,
           scene: 'LoruleH8',
           direction: 'left',
           sprite: 'pantingDog',
