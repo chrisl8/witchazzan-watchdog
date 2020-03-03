@@ -22,6 +22,10 @@ const fireballDirections = ['north', 'south', 'east', 'west'];
 let lastFireballDirection = 0;
 const fireballSleepTime = 1;
 let fireballSleepCounter = 0;
+const dogLocation = {
+  x: 144,
+  y: 96,
+};
 
 function handleData(event) {
   dataReceived = true;
@@ -45,24 +49,45 @@ function handleData(event) {
             foundOtherPlayers = true;
           }
         } else if (piece.type === 'slime') {
-          if (fireballSleepCounter === 0) {
-            fireballSleepCounter++;
-            // TODO: Fire AT the slime.
-            const fireballObject = {
-              message_type: 'fireball',
-              direction: fireballDirections[lastFireballDirection],
-              sprite: 'fireball',
-            };
-            ws.send(JSON.stringify(fireballObject));
-            if (lastFireballDirection < fireballDirections.length - 1) {
-              lastFireballDirection++;
+          const proximityThreshold = 20;
+          const xProximity = Math.abs(dogLocation.x - piece.x);
+          const yProximity = Math.abs(dogLocation.y - piece.y);
+          if (
+            xProximity < proximityThreshold ||
+            yProximity < proximityThreshold
+          ) {
+            if (fireballSleepCounter === 0) {
+              fireballSleepCounter++;
+              // TODO: MOVE toward the slime's axis!
+              let direction;
+              // Favors east/west over north/south
+              if (yProximity > xProximity) {
+                if (dogLocation.y > piece.y) {
+                  direction = 'north';
+                } else {
+                  direction = 'south';
+                }
+              } else if (dogLocation.x > piece.x) {
+                direction = 'west';
+              } else {
+                direction = 'east';
+              }
+              const fireballObject = {
+                message_type: 'fireball',
+                direction,
+                sprite: 'fireball',
+              };
+              ws.send(JSON.stringify(fireballObject));
+              if (lastFireballDirection < fireballDirections.length - 1) {
+                lastFireballDirection++;
+              } else {
+                lastFireballDirection = 0;
+              }
+            } else if (fireballSleepCounter > fireballSleepTime) {
+              fireballSleepCounter = 0;
             } else {
-              lastFireballDirection = 0;
+              fireballSleepCounter++;
             }
-          } else if (fireballSleepCounter > fireballSleepTime) {
-            fireballSleepCounter = 0;
-          } else {
-            fireballSleepCounter++;
           }
         }
       });
@@ -76,8 +101,8 @@ function handleData(event) {
       ws.send(
         JSON.stringify({
           message_type: 'location-update',
-          x: 128 + 16,
-          y: 96,
+          x: dogLocation.x,
+          y: dogLocation.y,
           scene: 'LoruleH8',
           direction: 'left',
           sprite: 'pantingDog',
