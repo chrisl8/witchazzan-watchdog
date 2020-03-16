@@ -15,16 +15,17 @@ const loopDuration = 10; // seconds
 const serverAddress = 'ws://127.0.0.1:8080';
 let ws;
 let playerId;
+// eslint-disable-next-line no-unused-vars
 let iAmAlone = true;
 let iAmDead = true;
 let locationSent = false;
 const fireballDirections = ['north', 'south', 'east', 'west'];
 let lastFireballDirection = 0;
-const fireballSleepTime = 1;
+const fireballSleepTime = 2;
 let fireballSleepCounter = 0;
 const dogLocation = {
-  x: 144,
-  y: 96,
+  x: 9.5,
+  y: 6.5,
 };
 
 function handleData(event) {
@@ -49,7 +50,7 @@ function handleData(event) {
             foundOtherPlayers = true;
           }
         } else if (piece.type === 'slime') {
-          const proximityThreshold = 20;
+          const proximityThreshold = 1.1;
           const xProximity = Math.abs(dogLocation.x - piece.x);
           const yProximity = Math.abs(dogLocation.y - piece.y);
           if (
@@ -162,7 +163,7 @@ function connectAndWait() {
 }
 
 async function watchdog() {
-  // eslint-disable-next-line no-await-in-loop
+  // eslint-disable-next-line no-await-in-loop,no-constant-condition
   while (true) {
     if (!connectionRunning) {
       if (firstRun) {
