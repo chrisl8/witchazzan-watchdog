@@ -169,6 +169,7 @@ async function watchdog() {
       if (firstRun) {
         firstRun = false;
       } else {
+        console.log(`${new Date()}`);
         console.log(
           `Error Count: ${errorCount}, Closed: ${closedCount}, Reconnecting...`,
         );
@@ -176,6 +177,7 @@ async function watchdog() {
       connectAndWait();
     } else if (!dataReceived) {
       noDataReceivedCount++;
+      console.log(`${new Date()}`);
       console.log(`No Data Received Count: ${noDataReceivedCount}`);
     } else if (dataReceived) {
       dataReceived = false;
@@ -191,8 +193,20 @@ async function watchdog() {
       closedCount = 0;
       noDataReceivedCount = 0;
       // TODO: Count server restarts and wipe save file if too many happen.
+      console.log('\n\n\n');
+      console.log('--------------------------------------------')
       console.log('Restarting server...');
-      exec('/home/witchazzan/witchazzan-watchdog/sendLogAndRestart.sh');
+      console.log(`${new Date()}`);
+      console.log('--------------------------------------------')
+      if (os.platform() === 'win32') {
+        exec("powershell.exe -command Stop-Process -name java", function (err, stdout, stderr) {
+      	  if (err) {console.log(err)};
+		  if (stdout) {console.log(stdout)};
+          if (stderr) {console.log(stderr)};
+		  });
+      } else {
+        exec('/home/witchazzan/witchazzan-watchdog/sendLogAndRestart.sh');
+      }
       // eslint-disable-next-line no-await-in-loop
       await wait(120);
     }
