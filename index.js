@@ -1,4 +1,5 @@
 const exec = require('child_process').exec;
+const os = require('os');
 const WebSocket = require('ws');
 const wait = require('./wait');
 
